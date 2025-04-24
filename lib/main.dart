@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kiddy Story',
+      title: '',
       debugShowCheckedModeBanner: false,
       home: const DuolingoHomePage(),
     );
@@ -25,37 +25,37 @@ class DuolingoHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 224, 245, 204),
+      backgroundColor: const Color.fromARGB(255, 221, 245, 178), // สีเขียวพาสเทลนุ่มขึ้น
       body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Spacer(),
-            Image.asset(
-              'lib/assets/logo.png',
-              height: 200,
-            ),
-            const SizedBox(height: 16),
-            Text.rich(
-              TextSpan(
-                children: const [
-                  TextSpan(
-                      text: 'Kiddy ',
-                      style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green)),
-                  TextSpan(
-                      text: 'Story',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.redAccent,
-                      )),
+
+            Container(
+              height: 500,
+              width: 500,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 225, 247, 175), // พื้นหลังชมพูนุ่มๆ ตัดกับเขียว
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  )
                 ],
               ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Image.asset(
+                  'lib/assets/logo.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
+
             const Spacer(),
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(

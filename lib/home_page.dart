@@ -1,45 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'edit_profile_page.dart';
 import 'activity_log_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _avatarPath;
+  int _currentPage = 0;
+
+  final List<String> _levels = ['Level 1', 'Level 2', 'Level 3'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvatarPath();
+  }
+
+  Future<void> _loadAvatarPath() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _avatarPath = prefs.getString('avatarPath') ?? 'lib/assets/avatar1.png';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // หน้าต่างๆ สำหรับแต่ละเลเวล
-          PageView(
-            scrollDirection: Axis.horizontal,
-            children: const [
-              LevelPage(level: 1, backgroundColor: Color(0xFFB3E5FC)),
-              LevelPage(level: 2, backgroundColor: Color(0xFF90CAF9)),
-              LevelPage(level: 3, backgroundColor: Color(0xFFB2EBF2)),
-            ],
+          // ✅ พื้นหลัง
+          Positioned.fill(
+            child: Image.asset(
+              'lib/assets/BGlv1.png',
+              fit: BoxFit.cover,
+            ),
           ),
 
-          // ไอคอนโปรไฟล์ (มุมซ้ายบน)
+          // ✅ PageView สำหรับเปลี่ยนเลเวล
+          PageView.builder(
+            itemCount: _levels.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Center(
+                child: Text(
+                  _levels[index],
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // ✅ ปุ่มโปรไฟล์ (ซ้ายบน)
           Positioned(
             top: 40,
             left: 20,
-            child: CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.white,
-              child: IconButton(
-                icon: const Icon(Icons.person, size: 30, color: Colors.purple),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const EditProfilePage()),
-                  );
-                },
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                ).then((_) => _loadAvatarPath());
+              },
+              child: CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.white,
+                backgroundImage:
+                    _avatarPath != null ? AssetImage(_avatarPath!) : null,
+                child: _avatarPath == null
+                    ? const Icon(Icons.person, color: Colors.purple)
+                    : null,
               ),
             ),
           ),
 
-          // ไอคอนสมุดกิจกรรม (มุมขวาบน)
+          // ✅ ปุ่ม Activity log (ขวาบน)
           Positioned(
             top: 40,
             right: 20,
@@ -56,44 +104,25 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
 
-class LevelPage extends StatelessWidget {
-  final int level;
-  final Color backgroundColor;
-
-  const LevelPage({
-    super.key,
-    required this.level,
-    required this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: backgroundColor,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Center(
-            child: Image.asset(
-              'lib/assets/building_level$level.png',
-              height: 400,
-              fit: BoxFit.contain,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 30),
-            child: Text(
-              'LEVEL $level',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54,
+          // ✅ Indicator แสดงว่าอยู่หน้าไหน
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _levels.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 12 : 8,
+                  height: _currentPage == index ? 12 : 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentPage == index ? Colors.white : Colors.grey,
+                  ),
+                ),
               ),
             ),
           ),

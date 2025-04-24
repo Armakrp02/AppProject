@@ -1,154 +1,190 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'choose_avatar_page.dart';
 
-class EditProfilePage extends StatelessWidget {
+class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  String _avatarPath = 'lib/assets/avatar1.png';
+
+  late TextEditingController _nicknameController;
+  late TextEditingController _ageController;
+
+  bool _soundEffects = true;
+  bool _speakingExercises = true;
+  bool _freehandedWriting = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _nicknameController = TextEditingController();
+    _ageController = TextEditingController();
+    _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    _ageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _avatarPath = prefs.getString('avatarPath') ?? _avatarPath;
+      _nicknameController.text = prefs.getString('nickname') ?? '';
+      _ageController.text = prefs.getString('age') ?? '';
+      _soundEffects = prefs.getBool('soundEffects') ?? true;
+      _speakingExercises = prefs.getBool('speakingExercises') ?? true;
+      _freehandedWriting = prefs.getBool('freehandedWriting') ?? true;
+    });
+  }
+
+  Future<void> _saveToggle(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
+  Future<void> _saveAvatarPath(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('avatarPath', path);
+  }
+
+  Future<void> _saveProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nickname', _nicknameController.text.trim());
+    await prefs.setString('age', _ageController.text.trim());
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile saved')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Settings'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.blue),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text("Edit Profile", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.blue),
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        children: [
-          const SizedBox(height: 8),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 12),
 
-          // รูปโปรไฟล์ + Add
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundImage: AssetImage('lib/assets/avatar.png'),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: CircleAvatar(
-                      radius: 12,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.edit, size: 16, color: Colors.blue),
+            Center(
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage(_avatarPath),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChooseAvatarPage(
+                        onAvatarSelected: (selected) {
+                          _saveAvatarPath(selected);
+                          setState(() {
+                            _avatarPath = selected;
+                          });
+                          Navigator.pop(context);
+                        },
+                      ),
                     ),
-                  )
-                ],
-              ),
-              const SizedBox(width: 24),
-              Column(
-                children: const [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Color(0xFFF0F0F0),
-                    child: Icon(Icons.add, color: Colors.grey),
-                  ),
-                  SizedBox(height: 8),
-                  Text('Add', style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-          const Center(
-            child: Text(
-              'Teodor',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-          const Text('General', style: TextStyle(fontWeight: FontWeight.bold)),
-
-          const SizedBox(height: 12),
-          _settingButton('FAQ', onTap: () {}),
-          _settingButton('GIVE US FEEDBACK', onTap: () {}),
-
-          const SizedBox(height: 24),
-          const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
-
-          const SizedBox(height: 12),
-          _notificationRow('Practice reminder'),
-          _notificationRow('Weekly progress'),
-          _notificationRow('Learning tips & support'),
-          _notificationRow('News & promotions'),
-
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () {
-              // sign out logic
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Signed out")),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                  );
+                },
+                child: const Text("CHANGE AVATAR", style: TextStyle(color: Colors.blue)),
               ),
             ),
-            child: const Text(
-              'SIGN OUT ARMPRYT@GMAIL.COM',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
 
-  Widget _settingButton(String title, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 24),
+            const Text("Nickname", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            TextFormField(
+              controller: _nicknameController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Color(0xFFF2F2F2),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            const Text("Age", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            TextFormField(
+              controller: _ageController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Color(0xFFF2F2F2),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+            const Text("General", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 12),
+
+            SwitchListTile(
+              title: const Text("Sound effects"),
+              value: _soundEffects,
+              onChanged: (value) {
+                setState(() => _soundEffects = value);
+                _saveToggle('soundEffects', value);
+              },
+              activeColor: Colors.blue,
+            ),
+            SwitchListTile(
+              title: const Text("Speaking exercises"),
+              value: _speakingExercises,
+              onChanged: (value) {
+                setState(() => _speakingExercises = value);
+                _saveToggle('speakingExercises', value);
+              },
+              activeColor: Colors.blue,
+            ),
+            SwitchListTile(
+              title: const Text("Freehanded writing"),
+              value: _freehandedWriting,
+              onChanged: (value) {
+                setState(() => _freehandedWriting = value);
+                _saveToggle('freehandedWriting', value);
+              },
+              activeColor: Colors.blue,
+            ),
+
+            const SizedBox(height: 24),
+
+            ElevatedButton(
+              onPressed: _saveProfile,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text('SAVE CHANGES', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+
+            const SizedBox(height: 24),
+          ],
         ),
-        alignment: Alignment.center,
-        child: Text(
-          title,
-          style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  Widget _notificationRow(String title) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F8F8),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title),
-          Row(
-            children: const [
-              Icon(Icons.email_outlined, color: Colors.lightBlue),
-              SizedBox(width: 8),
-              Icon(Icons.phone_android, color: Colors.lightBlue),
-            ],
-          )
-        ],
       ),
     );
   }
