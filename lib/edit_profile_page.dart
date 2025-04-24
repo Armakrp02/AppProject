@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'choose_avatar_page.dart';
+import 'main.dart'; // ต้องแน่ใจว่า path ถูกต้อง
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -24,11 +25,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.initState();
     _nicknameController = TextEditingController();
     _ageController = TextEditingController();
+
+    _nicknameController.addListener(_autoSaveProfile);
+    _ageController.addListener(_autoSaveProfile);
+
     _loadProfile();
   }
 
   @override
   void dispose() {
+    _nicknameController.removeListener(_autoSaveProfile);
+    _ageController.removeListener(_autoSaveProfile);
     _nicknameController.dispose();
     _ageController.dispose();
     super.dispose();
@@ -47,6 +54,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
   }
 
+  void _autoSaveProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nickname', _nicknameController.text.trim());
+    await prefs.setString('age', _ageController.text.trim());
+  }
+
   Future<void> _saveToggle(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
@@ -57,14 +70,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     await prefs.setString('avatarPath', path);
   }
 
-  Future<void> _saveProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('nickname', _nicknameController.text.trim());
-    await prefs.setString('age', _ageController.text.trim());
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile saved')),
+  void _signOut() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const DuolingoHomePage()),
+      (route) => false,
     );
   }
 
@@ -176,13 +186,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
             const SizedBox(height: 24),
 
             ElevatedButton(
-              onPressed: _saveProfile,
+              onPressed: _signOut,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Colors.redAccent,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              child: const Text('SAVE CHANGES', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text('SIGN OUT', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
 
             const SizedBox(height: 24),
