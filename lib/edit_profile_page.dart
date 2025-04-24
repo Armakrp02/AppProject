@@ -84,13 +84,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
           children: [
             const SizedBox(height: 12),
 
-            Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: AssetImage(_avatarPath),
+            if (_avatarPath != 'lib/assets/avatar1.png') ...[
+              Center(
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage(_avatarPath),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
+
             Center(
               child: TextButton(
                 onPressed: () {
